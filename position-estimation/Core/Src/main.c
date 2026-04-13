@@ -21,17 +21,24 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+#ifdef __GNUC__
+	#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+	#define GETCHAR_PROTOTYPE int __io_getchar(void)
+#else
+	#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+	#define GETCHAR_PROTOTYPE int getc(FILE *f)
+#endif /* __GNUC__ */
 
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -45,7 +52,6 @@ I2C_HandleTypeDef hi2c2;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -94,7 +100,7 @@ int main(void)
   MX_I2C2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  printf("Hello World!\r\n");
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -261,6 +267,20 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+PUTCHAR_PROTOTYPE {
+	HAL_UART_Transmit(&huart1, (uint8_t*) &ch, 1, HAL_MAX_DELAY);
+
+	return ch;
+}
+GETCHAR_PROTOTYPE {
+	int ch = 0;
+	HAL_UART_Receive(&huart1, (uint8_t*) &ch, 1, HAL_MAX_DELAY);
+
+	HAL_UART_Transmit(&huart1, (uint8_t*) &ch, 1, HAL_MAX_DELAY);
+
+	return ch;
+}
+
 
 /* USER CODE END 4 */
 
