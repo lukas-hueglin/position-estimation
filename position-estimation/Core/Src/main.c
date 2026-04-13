@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include <string.h>
+#include "LSM6DSL.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -100,7 +101,6 @@ int main(void)
   MX_I2C2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  printf("Hello World!\r\n");
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -108,7 +108,9 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+	  uint8_t pData = 0;
+	  HAL_StatusTypeDef status = LSM6DSL_read(&hi2c2, LSM6DSL_ACC_OUTX_L_ACC, &pData);
+	  printf("Value: %d \r\n", pData);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
