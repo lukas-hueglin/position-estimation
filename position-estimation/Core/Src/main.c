@@ -23,7 +23,8 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include <string.h>
-#include "LSM6DSL.h"
+
+#include "lsm6dsl.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -100,6 +101,7 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C2_Init();
   MX_USART1_UART_Init();
+  LSM6DSL_init(&hi2c2);
   /* USER CODE BEGIN 2 */
   /* USER CODE END 2 */
 
@@ -109,7 +111,7 @@ int main(void)
   {
     /* USER CODE END WHILE */
 	  uint8_t pData = 0;
-	  HAL_StatusTypeDef status = LSM6DSL_read(&hi2c2, LSM6DSL_ACC_OUTX_L_ACC, &pData);
+	  HAL_StatusTypeDef status = LSM6DSL_read(&hi2c2, LSM6DSL_OUTX_L_GYRO, &pData);
 	  printf("Value: %d \r\n", pData);
     /* USER CODE BEGIN 3 */
   }
