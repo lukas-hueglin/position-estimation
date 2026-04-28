@@ -101,18 +101,19 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C2_Init();
   MX_USART1_UART_Init();
-  LSM6DSL_init(&hi2c2);
   /* USER CODE BEGIN 2 */
+  LSM6DSL_init(&hi2c2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  vec3_t gyro_data;
+	  vec3_t acc_data;
+	  LSM6DSL_read_fifo(&hi2c2, &acc_data, &gyro_data);
     /* USER CODE END WHILE */
-	  uint8_t pData = 0;
-	  HAL_StatusTypeDef status = LSM6DSL_read(&hi2c2, LSM6DSL_OUTX_L_GYRO, &pData);
-	  printf("Value: %d \r\n", pData);
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -258,12 +259,24 @@ static void MX_USART1_UART_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
 
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+
+  /*Configure GPIO pin : IMU_INT_Pin */
+  GPIO_InitStruct.Pin = IMU_INT_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(IMU_INT_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -271,6 +284,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void IMUInterrupt_Callback(void) {
+	printf("int");
+}
+
 PUTCHAR_PROTOTYPE {
 	HAL_UART_Transmit(&huart1, (uint8_t*) &ch, 1, HAL_MAX_DELAY);
 

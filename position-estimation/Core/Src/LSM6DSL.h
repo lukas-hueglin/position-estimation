@@ -16,6 +16,7 @@
 #define LSM6DSL_WHO_AM_I 0xf
 #define LSM6DSL_CTRL1_ACC 0x10
 #define LSM6DSL_CTRL2_GYRO 0x11
+#define LSM6DSL_CTRL3_C 0x12
 
 #define LSM6DSL_OUTX_L_GYRO 0x22
 #define LSM6DSL_OUTX_H_GYRO 0x23
@@ -36,6 +37,12 @@
 #define LSM6DSL_FIFO_CTRL3 0x8
 #define LSM6DSL_FIFO_CTRL4 0x9
 #define LSM6DSL_FIFO_CTRL5 0xa
+#define LSM6DSL_FIFO_STATUS1 0x3a
+#define LSM6DSL_FIFO_STATUS2 0x3b
+#define LSM6DSL_FIFO_STATUS3 0x3c
+#define LSM6DSL_FIFO_STATUS4 0x3d
+#define LSM6DSL_FIFO_DATA_OUT_L 0x3e
+#define LSM6DSL_FIFO_DATA_OUT_H 0x3f
 
 #define LSM6DSL_INT1_CTRL 0xd
 
@@ -43,6 +50,9 @@
 #define ODR_POWER_DOWN 0x0
 #define ODR_208HZ 0x5
 #define ODR_416HZ 0x6
+
+#define BDU_ENABLE 0x1
+#define BDU_DISABLE 0x0
 
 #define FS_ACC_2G 0x0
 #define FS_ACC_4G 0x2
@@ -58,6 +68,7 @@
 
 #define FIFO_THRESHOLD 0x100
 #define FIFO_THRESHOLD_ENABLE 0x1
+#define FIFO_THRESHOLD_DISABLE 0x0
 #define FIFO_DISABLE_DATASET 0x0
 #define FIFO_NO_DECIMATION 0x1
 #define FIFO_MODE_CONTINUOUS 0x6
@@ -67,11 +78,20 @@
 
 // DEIFNE BANDWIDTH LPF1_BW_SEL AND BW0_XL
 
-typedef struct
+typedef struct fifo_data {
+	uint8_t acc_data[6];
+	uint8_t gyro_data[6];
+} fifo_data_t;
 
-HAL_StatusTypeDef LSM6DSL_read_byte(I2C_HandleTypeDef* hi2c, uint8_t reg_address, uint8_t* pData);
-HAL_StatusTypeDef LSM6DSL_write_byte(I2C_HandleTypeDef* hi2c, uint8_t reg_address, uint8_t* pData);
-//HAL_StatusTypeDef LSM6DSL_read_acc(I2C_HandleTypeDef* hi2c, uint8_t* pData);
+typedef struct vec3 {
+	uint16_t x;
+	uint16_t y;
+	uint16_t z;
+} vec3_t;
+
+uint8_t LSM6DSL_read_byte(I2C_HandleTypeDef* hi2c, uint8_t reg_address, HAL_StatusTypeDef* status);
+void LSM6DSL_write_byte(I2C_HandleTypeDef* hi2c, uint8_t reg_address, uint8_t* pData, HAL_StatusTypeDef* status);
+HAL_StatusTypeDef LSM6DSL_read_fifo(I2C_HandleTypeDef* hi2c, vec3_t* acc_data, vec3_t* gyro_data);
 
 
 void LSM6DSL_init();
