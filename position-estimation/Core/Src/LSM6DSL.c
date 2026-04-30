@@ -23,27 +23,47 @@ void LSM6DSL_write_byte(I2C_HandleTypeDef* hi2c, uint8_t reg_address, uint8_t* p
 HAL_StatusTypeDef LSM6DSL_read_fifo(I2C_HandleTypeDef* hi2c, vec3_t* acc_data, vec3_t* gyro_data) {
 	HAL_StatusTypeDef status;
 
-	// read number of unread samples
-	//uint16_t unread_samples = 0;
-	//unread_samples = LSM6DL_read_byte(hi2c, LSM6DSL_FIFO_STATUS2, &status);
-	//unread_samples = LSM6DL_read_byte(hi2c, LSM6DSL_FIFO_STATUS1, &status) | ((unread_samples & 0x7) << 8);
+	// wait until enough samples are in the FIFO in a blocking way
+	uint8_t lower_num, upper_num;
+	uint16_t num;
+	do {
+		// read number
+		lower_num = LSM6DSL_read_byte(hi2c, LSM6DSL_FIFO_STATUS1, &status);
+		upper_num = LSM6DSL_read_byte(hi2c, LSM6DSL_FIFO_STATUS2, &status);
 
-	// read fifo samples
-	uint8_t lower_bits[6];
-	uint8_t upper_bits[6];
-	status = HAL_I2C_Mem_Read(hi2c, LSM6DSL_ADDRESS, LSM6DSL_FIFO_DATA_OUT_L, I2C_MEMADD_SIZE_8BIT, lower_bits, 6, HAL_MAX_DELAY);
-	status = HAL_I2C_Mem_Read(hi2c, LSM6DSL_ADDRESS, LSM6DSL_FIFO_DATA_OUT_H, I2C_MEMADD_SIZE_8BIT, upper_bits, 6, HAL_MAX_DELAY);
-
-	gyro_data->x = ((uint16_t)lower_bits[0]) | (((uint16_t)upper_bits[0]) << 8);
-	gyro_data->y = ((uint16_t)lower_bits[1]) | (((uint16_t)upper_bits[1]) << 8);
-	gyro_data->z = ((uint16_t)lower_bits[2]) | (((uint16_t)upper_bits[2]) << 8);
-
-	acc_data->x = ((uint16_t)lower_bits[3]) | (((uint16_t)upper_bits[3]) << 8);
-	acc_data->y = ((uint16_t)lower_bits[4]) | (((uint16_t)upper_bits[4]) << 8);
-	acc_data->z = ((uint16_t)lower_bits[5]) | (((uint16_t)upper_bits[5]) << 8);
+		// combine
+		num = (uint16_t) ((lower_num) | (upper_num & 0x7) << 8);
+	} while (num < 6);
 
 
-	printf("gx: %d, gy: %d, gz: %d, ax: %d, ay: %d, az: %d \n\r", gyro_pattern.x, gyro_pattern.y, gyro_pattern.z, acc_pattern.x, acc_pattern.y, acc_pattern.z);
+	// read samples out of FIFO.
+	// As the BDU and IF_INC bits of the CTRL3_C register are set, meaning the register address
+	// is incremented automatically, we can read 12 bytes out of the lower FIFO register directly
+	uint8_t raw_buffer[12];
+	status = HAL_I2C_Mem_Read(hi2c, LSM6DSL_ADDRESS, LSM6DSL_FIFO_DATA_OUT_L, I2C_MEMADD_SIZE_8BIT, raw_buffer, 12, HAL_MAX_DELAY);
+
+	// convert the samples into 16 bit signed integers
+	int16_t gyro_x_raw, gyro_y_raw, gyro_z_raw;
+	int16_t acc_x_raw, acc_y_raw, acc_z_raw;
+	gyro_x_raw = (int16_t)((raw_buffer[1] << 8) | raw_buffer[0]);
+	gyro_y_raw = (int16_t)((raw_buffer[3] << 8) | raw_buffer[2]);
+	gyro_z_raw = (int16_t)((raw_buffer[5] << 8) | raw_buffer[4]);
+
+	acc_x_raw = (int16_t)((raw_buffer[7] << 8) | raw_buffer[6]);
+	acc_y_raw = (int16_t)((raw_buffer[9] << 8) | raw_buffer[8]);
+	acc_z_raw = (int16_t)((raw_buffer[11] << 8) | raw_buffer[10]);
+
+	// convert them into floating point format, assuming G_FS = 250 and LA_FS = 2
+	gyro_data->x = 8.75e-3f*gyro_x_raw;
+	gyro_data->y = 8.75e-3f*gyro_y_raw;
+	gyro_data->z = 8.75e-3f*gyro_z_raw;
+
+	acc_data->x = 6.1e-5f*acc_x_raw;
+	acc_data->y = 6.1e-5f*acc_y_raw;
+	acc_data->z = 6.1e-5f*acc_z_raw;
+
+	printf("gx: %.2f\t, gy: %.2f\t, gz: %.2f\t, ax: %.2f\t, ay: %.2f\t, az: %.2f\t, num: %d\n\r", gyro_data->x, gyro_data->y, gyro_data->z, acc_data->x, acc_data->y, acc_data->z, num);
+	//printf("gx: %d\t, gy: %d\t, gz: %d\t, ax: %d\t, ay: %d\t, az: %d\t, num: %d\n\r", gyro_x_raw, gyro_y_raw, gyro_z_raw, acc_x_raw, acc_y_raw, acc_z_raw, num);
 
 	return status;
 }
@@ -53,15 +73,15 @@ void LSM6DSL_init(I2C_HandleTypeDef* hi2c){
 
 	// CTRL1_XL register
 	uint8_t ctrl1_acc = 0;
-	ctrl1_acc |= (ODR_208HZ << 4);
+	ctrl1_acc |= (ODR_52HZ << 4);
 	ctrl1_acc |= (FS_ACC_2G << 2);
-	//ctrl1_acc |= // INSERT LPF1_BW_SEL
-	//ctrl1_acc |= // INSERT BW0_XL
+	// ctrl1_acc |= // INSERT LPF1_BW_SEL
+	// ctrl1_acc |= // INSERT BW0_XL
 	LSM6DSL_write_byte(hi2c, LSM6DSL_CTRL1_ACC, &ctrl1_acc, &status);
 
 	// CTRL2_G register
 	uint8_t ctrl2_gyro = 0;
-	ctrl2_gyro |= (ODR_208HZ << 4);
+	ctrl2_gyro |= (ODR_52HZ << 4);
 	ctrl2_gyro |= (FS_GYRO_250DPS << 2);
 	ctrl2_gyro |= (FS_GYRO_OVR_NONE << 1);
 	LSM6DSL_write_byte(hi2c, LSM6DSL_CTRL2_GYRO, &ctrl2_gyro, &status);
@@ -69,7 +89,15 @@ void LSM6DSL_init(I2C_HandleTypeDef* hi2c){
 	// CTRL3_C register
 	uint8_t ctrl3_c = 0;
 	ctrl3_c |= (BDU_ENABLE << 6);
+	ctrl3_c |= (IF_INC_ENABLE << 2);
+	// ctrl3_c |= // INSERT many more
 	LSM6DSL_write_byte(hi2c, LSM6DSL_CTRL3_C, &ctrl3_c, &status);
+
+	// CTRL5_C register
+	uint8_t ctrl5_c = 0;
+	ctrl5_c |= (ROUNDING_GYRO_ACC << 5);
+	// ctrl5_c |= // INSERT many more
+	LSM6DSL_write_byte(hi2c, LSM6DSL_CTRL5_C, &ctrl5_c, &status);
 
 	// FIFO_CTRL1 register
 	uint8_t fifo_ctrl1 = (FIFO_THRESHOLD & 0xff); // last 8 bits (last significant) of the fifo threashold value
@@ -99,7 +127,7 @@ void LSM6DSL_init(I2C_HandleTypeDef* hi2c){
 
 	// FIFO_CTRL5 register
 	uint8_t fifo_ctrl5 = 0;
-	fifo_ctrl5 |= ODR_208HZ << 3;
+	fifo_ctrl5 |= ODR_52HZ << 3;
 	fifo_ctrl5 |= FIFO_MODE_CONTINUOUS;
 	LSM6DSL_write_byte(hi2c, LSM6DSL_FIFO_CTRL5, &fifo_ctrl5, &status);
 

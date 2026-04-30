@@ -72,6 +72,10 @@ void IMUInterrupt_Callback(void);
 
 /* USER CODE BEGIN Private defines */
 
+typedef struct vec3 vec3_t;
+
+void write_Acc_Gyro(vec3_t* acc_data, vec3_t* gyro_data);
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

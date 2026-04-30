@@ -17,6 +17,8 @@
 #define LSM6DSL_CTRL1_ACC 0x10
 #define LSM6DSL_CTRL2_GYRO 0x11
 #define LSM6DSL_CTRL3_C 0x12
+#define LSM6DSL_CTRL4_C 0x13
+#define LSM6DSL_CTRL5_C 0x14
 
 #define LSM6DSL_OUTX_L_GYRO 0x22
 #define LSM6DSL_OUTX_H_GYRO 0x23
@@ -48,11 +50,20 @@
 
 // values
 #define ODR_POWER_DOWN 0x0
+#define ODR_1_6HZ 0xb
+#define ODR_12_5HZ 0x1
+#define ODR_26HZ 0x2
+#define ODR_52HZ 0x3
+#define ODR_104HZ 0x4
 #define ODR_208HZ 0x5
 #define ODR_416HZ 0x6
 
 #define BDU_ENABLE 0x1
 #define BDU_DISABLE 0x0
+#define IF_INC_ENABLE 0x1
+#define IF_INC_DISABLE 0x0
+
+#define ROUNDING_GYRO_ACC 0x3
 
 #define FS_ACC_2G 0x0
 #define FS_ACC_4G 0x2
@@ -84,9 +95,9 @@ typedef struct fifo_data {
 } fifo_data_t;
 
 typedef struct vec3 {
-	uint16_t x;
-	uint16_t y;
-	uint16_t z;
+	float x;
+	float y;
+	float z;
 } vec3_t;
 
 uint8_t LSM6DSL_read_byte(I2C_HandleTypeDef* hi2c, uint8_t reg_address, HAL_StatusTypeDef* status);

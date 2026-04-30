@@ -61,7 +61,7 @@ main-build: position-estimation.elf secondary-outputs
 
 # Tool invocations
 position-estimation.elf position-estimation.map: $(OBJS) $(USER_OBJS) C:\Users\lukas\source\repos\position-estimation\position-estimation\STM32L475VGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "position-estimation.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\lukas\source\repos\position-estimation\position-estimation\STM32L475VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="position-estimation.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "position-estimation.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\lukas\source\repos\position-estimation\position-estimation\STM32L475VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="position-estimation.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
