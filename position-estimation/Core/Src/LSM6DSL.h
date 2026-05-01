@@ -20,19 +20,9 @@
 #define LSM6DSL_CTRL4_C 0x13
 #define LSM6DSL_CTRL5_C 0x14
 
-#define LSM6DSL_OUTX_L_GYRO 0x22
-#define LSM6DSL_OUTX_H_GYRO 0x23
-#define LSM6DSL_OUTY_L_GYRO 0x24
-#define LSM6DSL_OUTY_H_GYRO 0x25
-#define LSM6DSL_OUTZ_L_GYRO 0x26
-#define LSM6DSL_OUTZ_H_GYRO 0x27
-
-#define LSM6DSL_OUTX_L_ACC 0x28
-#define LSM6DSL_OUTX_H_ACC 0x29
-#define LSM6DSL_OUTY_L_ACC 0x2a
-#define LSM6DSL_OUTY_H_ACC 0x2b
-#define LSM6DSL_OUTZ_L_ACC 0x2c
-#define LSM6DSL_OUTZ_H_ACC 0x2d
+#define LSM6DSL_X_OFS_USR 0x73
+#define LSM6DSL_Y_OFS_USR 0x74
+#define LSM6DSL_Z_OFS_USR 0x75
 
 #define LSM6DSL_FIFO_CTRL1 0x6
 #define LSM6DSL_FIFO_CTRL2 0x7
@@ -87,12 +77,10 @@
 #define INT1_FULL_FLAG 0x1
 #define INT1_THRESHOLD_FLAG 0x1
 
-// DEIFNE BANDWIDTH LPF1_BW_SEL AND BW0_XL
+#define DEG2RAD 0.0174532925199
+#define EARTH_GRAVITY 9.81
+#define N_CALIB 100
 
-typedef struct fifo_data {
-	uint8_t acc_data[6];
-	uint8_t gyro_data[6];
-} fifo_data_t;
 
 typedef struct vec3 {
 	float x;
@@ -102,10 +90,11 @@ typedef struct vec3 {
 
 uint8_t LSM6DSL_read_byte(I2C_HandleTypeDef* hi2c, uint8_t reg_address, HAL_StatusTypeDef* status);
 void LSM6DSL_write_byte(I2C_HandleTypeDef* hi2c, uint8_t reg_address, uint8_t* pData, HAL_StatusTypeDef* status);
-HAL_StatusTypeDef LSM6DSL_read_fifo(I2C_HandleTypeDef* hi2c, vec3_t* acc_data, vec3_t* gyro_data);
+HAL_StatusTypeDef LSM6DSL_read_fifo(I2C_HandleTypeDef* hi2c, vec3_t* acc_data, vec3_t* gyro_data, vec3_t* gyro_offs, vec3_t* acc_offs);
 
 
-void LSM6DSL_init();
+void LSM6DSL_init(I2C_HandleTypeDef* hi2c);
+void LSM6DSL_calib(I2C_HandleTypeDef* hi2c, vec3_t* gyro_offs, vec3_t* acc_offs);
 
 
 #endif /* SRC_LSM6DSL_H_ */

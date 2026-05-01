@@ -20,7 +20,7 @@ void LSM6DSL_write_byte(I2C_HandleTypeDef* hi2c, uint8_t reg_address, uint8_t* p
 	*status = HAL_I2C_Mem_Write(hi2c, LSM6DSL_ADDRESS, reg_address, I2C_MEMADD_SIZE_8BIT, pData, 1, HAL_MAX_DELAY);
 }
 
-HAL_StatusTypeDef LSM6DSL_read_fifo(I2C_HandleTypeDef* hi2c, vec3_t* acc_data, vec3_t* gyro_data) {
+HAL_StatusTypeDef LSM6DSL_read_fifo(I2C_HandleTypeDef* hi2c, vec3_t* gyro_data, vec3_t* acc_data, vec3_t* gyro_offs, vec3_t* acc_offs) {
 	HAL_StatusTypeDef status;
 
 	// wait until enough samples are in the FIFO in a blocking way
@@ -54,13 +54,13 @@ HAL_StatusTypeDef LSM6DSL_read_fifo(I2C_HandleTypeDef* hi2c, vec3_t* acc_data, v
 	acc_z_raw = (int16_t)((raw_buffer[11] << 8) | raw_buffer[10]);
 
 	// convert them into floating point format, assuming G_FS = 250 and LA_FS = 2
-	gyro_data->x = 8.75e-3f*gyro_x_raw;
-	gyro_data->y = 8.75e-3f*gyro_y_raw;
-	gyro_data->z = 8.75e-3f*gyro_z_raw;
+	gyro_data->x = DEG2RAD * 8.75e-3f*gyro_x_raw - gyro_offs->x;
+	gyro_data->y = DEG2RAD * 8.75e-3f*gyro_y_raw - gyro_offs->y;
+	gyro_data->z = DEG2RAD * 8.75e-3f*gyro_z_raw - gyro_offs->z;
 
-	acc_data->x = 6.1e-5f*acc_x_raw;
-	acc_data->y = 6.1e-5f*acc_y_raw;
-	acc_data->z = 6.1e-5f*acc_z_raw;
+	acc_data->x = EARTH_GRAVITY * 6.1e-5f*acc_x_raw - acc_offs->x;
+	acc_data->y = EARTH_GRAVITY * 6.1e-5f*acc_y_raw - acc_offs->y;
+	acc_data->z = EARTH_GRAVITY * 6.1e-5f*acc_z_raw - acc_offs->z;
 
 	//printf("gx: %.2f\t, gy: %.2f\t, gz: %.2f\t, ax: %.2f\t, ay: %.2f\t, az: %.2f\t, num: %d\n\r", gyro_data->x, gyro_data->y, gyro_data->z, acc_data->x, acc_data->y, acc_data->z, num);
 
@@ -136,4 +136,35 @@ void LSM6DSL_init(I2C_HandleTypeDef* hi2c){
 	int1_ctrl |= INT1_FULL_FLAG << 5;
 	int1_ctrl |= INT1_THRESHOLD_FLAG << 3;
 	LSM6DSL_write_byte(hi2c, LSM6DSL_INT1_CTRL, &int1_ctrl, &status);
+}
+
+void LSM6DSL_calib(I2C_HandleTypeDef* hi2c, vec3_t* gyro_offs, vec3_t* acc_offs) {
+	// reset values to 0
+	vec3_t gyro_sample, acc_sample;
+	vec3_t no_offs = { 0, 0, 0 };
+
+	// take samples and compute sum
+	for (int i = 0; i < N_CALIB; ++i) {
+		LSM6DSL_read_fifo(hi2c, &gyro_sample, &acc_sample, &no_offs, &no_offs);
+
+		gyro_offs->x += gyro_sample.x;
+		gyro_offs->y += gyro_sample.y;
+		gyro_offs->z += gyro_sample.z;
+
+		acc_offs->x += acc_sample.x;
+		acc_offs->y += acc_sample.y;
+		acc_offs->z += acc_sample.z;
+	}
+
+	// compute average
+	gyro_offs->x /= N_CALIB;
+	gyro_offs->y /= N_CALIB;
+	gyro_offs->z /= N_CALIB;
+
+	acc_offs->x /= N_CALIB;
+	acc_offs->y /= N_CALIB;
+	acc_offs->z /= N_CALIB;
+
+	// offset z axis of the accelerometer
+	acc_offs->z -= EARTH_GRAVITY;
 }

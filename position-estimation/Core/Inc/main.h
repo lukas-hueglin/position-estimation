@@ -51,20 +51,18 @@ extern "C" {
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
-void IMUInterrupt_Callback(void);
 
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define CALIB_LED_Pin GPIO_PIN_5
+#define CALIB_LED_GPIO_Port GPIOA
 #define I2C_SCL_Pin GPIO_PIN_10
 #define I2C_SCL_GPIO_Port GPIOB
 #define I2C_SDA_Pin GPIO_PIN_11
 #define I2C_SDA_GPIO_Port GPIOB
-#define IMU_INT_Pin GPIO_PIN_11
-#define IMU_INT_GPIO_Port GPIOD
-#define IMU_INT_EXTI_IRQn EXTI15_10_IRQn
 #define UART_TX_Pin GPIO_PIN_6
 #define UART_TX_GPIO_Port GPIOB
 #define UART_RX_Pin GPIO_PIN_7
@@ -74,7 +72,7 @@ void IMUInterrupt_Callback(void);
 
 typedef struct vec3 vec3_t;
 
-void write_Acc_Gyro(vec3_t* acc_data, vec3_t* gyro_data);
+void write_Gyro_Acc(vec3_t* gyro_data, vec3_t* acc_data);
 
 /* USER CODE END Private defines */
 

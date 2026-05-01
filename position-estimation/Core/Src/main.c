@@ -102,21 +102,29 @@ int main(void)
   MX_I2C2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
+
+  // initialize imu
   LSM6DSL_init(&hi2c2);
+
+  // calibrate imu
+  vec3_t gyro_offs = { 0, 0, 0 };
+  vec3_t acc_offs = { 0, 0, 0 };
+  HAL_GPIO_WritePin(CALIB_LED_GPIO_Port, CALIB_LED_Pin, GPIO_PIN_SET);
+  LSM6DSL_calib(&hi2c2, &gyro_offs, &acc_offs);
+  HAL_GPIO_WritePin(CALIB_LED_GPIO_Port, CALIB_LED_Pin, GPIO_PIN_RESET);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  vec3_t gyro_data;
-	  vec3_t acc_data;
-	  LSM6DSL_read_fifo(&hi2c2, &acc_data, &gyro_data);
+	vec3_t gyro_data;
+	vec3_t acc_data;
+	LSM6DSL_read_fifo(&hi2c2, &gyro_data, &acc_data, &gyro_offs, &acc_offs);
+	write_Gyro_Acc(&gyro_data, &acc_data);
+	/* USER CODE END WHILE */
 
-	  write_Acc_Gyro(&acc_data, &gyro_data);
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
+	/* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
@@ -267,18 +275,18 @@ static void MX_GPIO_Init(void)
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
 
-  /*Configure GPIO pin : IMU_INT_Pin */
-  GPIO_InitStruct.Pin = IMU_INT_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(CALIB_LED_GPIO_Port, CALIB_LED_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : CALIB_LED_Pin */
+  GPIO_InitStruct.Pin = CALIB_LED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(IMU_INT_GPIO_Port, &GPIO_InitStruct);
-
-  /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(CALIB_LED_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -287,11 +295,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-void IMUInterrupt_Callback(void) {
-	printf("int");
-}
-
-void write_Acc_Gyro(vec3_t* acc_data, vec3_t* gyro_data) {
+void write_Gyro_Acc(vec3_t* gyro_data, vec3_t* acc_data) {
 
 	uint8_t buffer[26];
 	// write header for gyroscope data
@@ -311,7 +315,7 @@ void write_Acc_Gyro(vec3_t* acc_data, vec3_t* gyro_data) {
 	memcpy(&buffer[22], &acc_data->z, sizeof(float));
 
 	// transmit
-	HAL_UART_Transmit(&huart1, buffer, 14, HAL_MAX_DELAY);
+	HAL_UART_Transmit(&huart1, buffer, 26, HAL_MAX_DELAY);
 }
 
 PUTCHAR_PROTOTYPE {
