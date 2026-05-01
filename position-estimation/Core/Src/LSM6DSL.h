@@ -1,5 +1,5 @@
 /*
- * LSM6DSL.h
+ * lsm6dsl.h
  *
  *  Created on: 13.04.2026
  *      Author: gutal

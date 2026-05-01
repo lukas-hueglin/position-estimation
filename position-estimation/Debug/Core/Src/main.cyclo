@@ -5,6 +5,6 @@
 ../Core/Src/main.c:262:13:MX_GPIO_Init	1
 ../Core/Src/main.c:290:6:IMUInterrupt_Callback	1
 ../Core/Src/main.c:294:6:write_Acc_Gyro	1
-../Core/Src/main.c:323:1:__io_putchar	1
-../Core/Src/main.c:328:1:__io_getchar	1
-../Core/Src/main.c:344:6:Error_Handler	1
+../Core/Src/main.c:317:1:__io_putchar	1
+../Core/Src/main.c:322:1:__io_getchar	1
+../Core/Src/main.c:338:6:Error_Handler	1

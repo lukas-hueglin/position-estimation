@@ -113,7 +113,7 @@ int main(void)
 	  vec3_t acc_data;
 	  LSM6DSL_read_fifo(&hi2c2, &acc_data, &gyro_data);
 
-	  //write_Acc_Gyro(&acc_data, &gyro_data);
+	  write_Acc_Gyro(&acc_data, &gyro_data);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -293,28 +293,22 @@ void IMUInterrupt_Callback(void) {
 
 void write_Acc_Gyro(vec3_t* acc_data, vec3_t* gyro_data) {
 
-	uint8_t buffer[14];
+	uint8_t buffer[26];
 	// write header for gyroscope data
 	buffer[0] = 'g';
 
 	// write gyroscope data
-	//buffer[1] = gyro_data->x & 0xff;
-	//buffer[2] = (gyro_data->x >> 8) & 0xff;
-	//buffer[3] = gyro_data->y & 0xff;
-	//buffer[4] = (gyro_data->y >> 8) & 0xff;
-	//buffer[5] = gyro_data->z & 0xff;
-	//buffer[6] = (gyro_data->z >> 8) & 0xff;
+	memcpy(&buffer[1], &gyro_data->x, sizeof(float));
+	memcpy(&buffer[5], &gyro_data->y, sizeof(float));
+	memcpy(&buffer[9], &gyro_data->z, sizeof(float));
 
 	// write header for accelerometer data
-	buffer[7] = 'a';
+	buffer[13] = 'a';
 
 	// write accelerometer data
-	//buffer[8] = acc_data->x & 0xff;
-	//buffer[9] = (acc_data->x >> 8) & 0xff;
-	//buffer[10] = acc_data->y & 0xff;
-	//buffer[11] = (acc_data->y >> 8) & 0xff;
-	//buffer[12] = acc_data->z & 0xff;
-	//buffer[13] = (acc_data->z >> 8) & 0xff;
+	memcpy(&buffer[14], &acc_data->x, sizeof(float));
+	memcpy(&buffer[18], &acc_data->y, sizeof(float));
+	memcpy(&buffer[22], &acc_data->z, sizeof(float));
 
 	// transmit
 	HAL_UART_Transmit(&huart1, buffer, 14, HAL_MAX_DELAY);

@@ -1,5 +1,5 @@
 /*
- * LSM6DSL.c
+ * lsm6dsl.c
  *
  *  Created on: 13.04.2026
  *      Author: gutal
@@ -62,8 +62,7 @@ HAL_StatusTypeDef LSM6DSL_read_fifo(I2C_HandleTypeDef* hi2c, vec3_t* acc_data, v
 	acc_data->y = 6.1e-5f*acc_y_raw;
 	acc_data->z = 6.1e-5f*acc_z_raw;
 
-	printf("gx: %.2f\t, gy: %.2f\t, gz: %.2f\t, ax: %.2f\t, ay: %.2f\t, az: %.2f\t, num: %d\n\r", gyro_data->x, gyro_data->y, gyro_data->z, acc_data->x, acc_data->y, acc_data->z, num);
-	//printf("gx: %d\t, gy: %d\t, gz: %d\t, ax: %d\t, ay: %d\t, az: %d\t, num: %d\n\r", gyro_x_raw, gyro_y_raw, gyro_z_raw, acc_x_raw, acc_y_raw, acc_z_raw, num);
+	//printf("gx: %.2f\t, gy: %.2f\t, gz: %.2f\t, ax: %.2f\t, ay: %.2f\t, az: %.2f\t, num: %d\n\r", gyro_data->x, gyro_data->y, gyro_data->z, acc_data->x, acc_data->y, acc_data->z, num);
 
 	return status;
 }
