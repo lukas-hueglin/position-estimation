@@ -1,5 +1,5 @@
-../Core/Src/lsm6dsl.c:13:9:LSM6DSL_read_byte	1
-../Core/Src/lsm6dsl.c:19:6:LSM6DSL_write_byte	1
-../Core/Src/lsm6dsl.c:23:19:LSM6DSL_read_fifo	2
-../Core/Src/lsm6dsl.c:70:6:LSM6DSL_init	1
-../Core/Src/lsm6dsl.c:141:6:LSM6DSL_calib	2
+../Core/Src/LSM6DSL.c:13:9:LSM6DSL_read_byte	1
+../Core/Src/LSM6DSL.c:19:6:LSM6DSL_write_byte	1
+../Core/Src/LSM6DSL.c:23:19:LSM6DSL_read_fifo	2
+../Core/Src/LSM6DSL.c:70:6:LSM6DSL_init	1
+../Core/Src/LSM6DSL.c:141:6:LSM6DSL_calib	2
